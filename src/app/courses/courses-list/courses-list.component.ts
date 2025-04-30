@@ -12,6 +12,8 @@ export class CoursesListComponent implements OnInit {
 
   @Input() courses: Course[] = [];
   @Output() add = new EventEmitter(false);
+  @Output() edit = new EventEmitter(false);
+  @Output() delete = new EventEmitter(false);
 
   displayedColumns = ['name', 'category', 'actions'];
 
@@ -24,6 +26,14 @@ export class CoursesListComponent implements OnInit {
 
   onAdd(){
     this.add.emit(true);
+  }
+
+  onEdit(course: Course){
+    this.edit.emit(course);
+  }
+
+  onDelete(course: Course){
+    this.delete.emit(course);
   }
 
 }
