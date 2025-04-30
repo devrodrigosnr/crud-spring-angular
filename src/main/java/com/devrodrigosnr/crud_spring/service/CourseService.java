@@ -1,51 +1,57 @@
 package com.devrodrigosnr.crud_spring.service;
 
-import com.devrodrigosnr.crud_spring.model.Course;
+import com.devrodrigosnr.crud_spring.dto.CourseDTO;
+import com.devrodrigosnr.crud_spring.dto.mapper.CourseMapper;
+import com.devrodrigosnr.crud_spring.enums.Category;
+import com.devrodrigosnr.crud_spring.exception.RecordNotFoundException;
 import com.devrodrigosnr.crud_spring.repository.CourseRepository;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CourseService {
 
-    private CourseRepository repository;
+    private final CourseRepository repository;
+    private final CourseMapper courseMapper;
 
-    public CourseService(CourseRepository repository){
+    public CourseService(CourseRepository repository, CourseMapper courseMapper){
         this.repository = repository;
+        this.courseMapper = courseMapper;
     }
 
-    public List<Course> list(){
-        return this.repository.findAll();
+    public List<CourseDTO> list(){
+        return repository.findAll()
+            .stream()
+            .map(courseMapper::toDTO)
+            .collect(Collectors.toList());
     }
 
-    public Course create(@Valid Course course){
-        return repository.save(course);
+    public CourseDTO create(@Valid @NotNull CourseDTO course){
+        return courseMapper.toDTO(repository.save(courseMapper.toEntity(course)));
     }
 
-    public Optional<Course> findById(Long id) {
-        return repository.findById(id);
+    public CourseDTO findById(Long id) {
+        return repository.findById(id).map(courseMapper::toDTO)
+            .orElseThrow(() -> new RecordNotFoundException(id));
 	}
 
-    public Optional<Course> update(Long id, @Valid Course course) {
+    public CourseDTO update(Long id, @Valid CourseDTO course) {
         return repository.findById(id)
                 .map(recordFound -> {
-                    recordFound.setName(course.getName());
-                    recordFound.setCategory(course.getCategory());
-                    return repository.save(recordFound);
-                });
+                    recordFound.setName(course.name());
+                    recordFound.setCategory(courseMapper.convertToCategory(course.category()));
+                    return courseMapper.toDTO(repository.save(recordFound));
+                }).orElseThrow(() -> new RecordNotFoundException(id));
     }
 
-    public boolean delete(Long id) {
-    return repository.findById(id)
-            .map(recordFound -> {
-                repository.deleteById(id);
-                return true;
-            })
-            .orElse(false);
+    public void delete(Long id) {
+        repository.delete(repository.findById(id)
+                .orElseThrow(() -> new RecordNotFoundException(id)));
     }
 }
