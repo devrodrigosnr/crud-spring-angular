@@ -1,7 +1,15 @@
 package com.devrodrigosnr.crud_spring.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
+
+import com.devrodrigosnr.crud_spring.enums.Category;
+import com.devrodrigosnr.crud_spring.enums.Status;
+import com.devrodrigosnr.crud_spring.enums.converters.CategoryConverter;
+import com.devrodrigosnr.crud_spring.enums.converters.StatusConverter;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -27,12 +35,16 @@ public class Course {
     @NotBlank
     @NotNull
     @Pattern(regexp = "Backend|Frontend")
-    @Column(length = 10, nullable = false)
-    private String category;
+    @Column(nullable = false)
+    @Convert(converter = CategoryConverter.class)
+    private Category category;
 
     @NotBlank
     @NotNull
-    @Pattern(regexp = "Ativo|Inativo")
-    @Column(length = 10, nullable = false)
-    private String status = "Ativo";
+    @Column(nullable = false)
+    @Convert(converter = StatusConverter.class)
+    private Status status = Status.ATIVO;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "course")
+    private List<Lesson> lessons = new ArrayList<>();
 }
