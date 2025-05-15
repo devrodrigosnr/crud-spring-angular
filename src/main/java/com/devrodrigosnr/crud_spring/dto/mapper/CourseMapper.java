@@ -9,6 +9,7 @@ import com.devrodrigosnr.crud_spring.dto.CourseDTO;
 import com.devrodrigosnr.crud_spring.dto.LessonDTO;
 import com.devrodrigosnr.crud_spring.enums.Category;
 import com.devrodrigosnr.crud_spring.model.Course;
+import com.devrodrigosnr.crud_spring.model.Lesson;
 
 @Component
 public class CourseMapper {
@@ -33,6 +34,16 @@ public class CourseMapper {
         }
         course.setName(courseDTO.name());
         course.setCategory(convertToCategory(courseDTO.category()));
+
+        List<Lesson> lessons = courseDTO.lessons().stream().map(lessonDTO -> {
+            var lesson = new Lesson();
+            lesson.setId(lessonDTO.id());
+            lesson.setName(lessonDTO.name());
+            lesson.setYoutubeURL(lessonDTO.youtubeURL());
+            lesson.setCourse(course);
+            return lesson;
+        }).collect(Collectors.toList());
+        course.setLessons(lessons);
         return course;
     }
 

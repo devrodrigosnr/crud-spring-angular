@@ -2,8 +2,8 @@ package com.devrodrigosnr.crud_spring.service;
 
 import com.devrodrigosnr.crud_spring.dto.CourseDTO;
 import com.devrodrigosnr.crud_spring.dto.mapper.CourseMapper;
-import com.devrodrigosnr.crud_spring.enums.Category;
 import com.devrodrigosnr.crud_spring.exception.RecordNotFoundException;
+import com.devrodrigosnr.crud_spring.model.Course;
 import com.devrodrigosnr.crud_spring.repository.CourseRepository;
 
 import jakarta.validation.Valid;
@@ -41,11 +41,14 @@ public class CourseService {
             .orElseThrow(() -> new RecordNotFoundException(id));
 	}
 
-    public CourseDTO update(Long id, @Valid CourseDTO course) {
+    public CourseDTO update(Long id, @Valid CourseDTO courseDTO) {
         return repository.findById(id)
                 .map(recordFound -> {
-                    recordFound.setName(course.name());
-                    recordFound.setCategory(courseMapper.convertToCategory(course.category()));
+                    Course course = courseMapper.toEntity(courseDTO);
+                    recordFound.setName(courseDTO.name());
+                    recordFound.setCategory(courseMapper.convertToCategory(courseDTO.category()));
+                    recordFound.getLessons().clear();
+                    course.getLessons().forEach(lesson -> recordFound.getLessons().add(lesson));
                     return courseMapper.toDTO(repository.save(recordFound));
                 }).orElseThrow(() -> new RecordNotFoundException(id));
     }
